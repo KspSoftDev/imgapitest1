@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const port = 3000;
-// const cors = require('cors');
+const cors = require('cors');
 
 // Telegram Bot Token
 const botToken = '7758299226:AAGl2ClQc6ZAUQFkfDvNXL0V4imtU1GQZUg'; // Replace with your bot's token
@@ -16,9 +16,7 @@ if (!fs.existsSync(imagesDir)) {
 }
 
 // Enable CORS for your Flutter app domain
-// app.use(cors({
-//   origin: 'http://localhost:59055', // Replace with your Flutter web app domain
-// }));
+app.use(cors());
 
 // Default /file route
 app.get('/file', (req, res) => {
