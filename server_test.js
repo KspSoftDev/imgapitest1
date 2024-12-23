@@ -7,7 +7,7 @@ const port = 3000;
 const cors = require('cors');
 
 // Telegram Bot Token
-const botToken = '7919464382:AAEF4l9DtTq9sumNeutTqP-TBEF2-nCXpUs'; // Replace with your bot's token
+const botToken = '7667819457:AAHbSw86ql_QqFdGHGcTZfuS4QRN8PZKJgM'; // Replace with your bot's token
 
 // Folder to store images
 const imagesDir = path.join(__dirname, 'images');
