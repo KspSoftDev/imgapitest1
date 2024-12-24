@@ -19,7 +19,7 @@ if (!fs.existsSync(imagesDir)) {
 app.use(cors());
 
 // Default /file route
-app.get('/file', (req, res) => {
+app.get('/test-doubtrun/file', (req, res) => {
   const getUpdatesUrl = `https://api.telegram.org/bot${botToken}/getUpdates`;
 
   res.send(`
@@ -38,41 +38,68 @@ app.get('/file', (req, res) => {
 });
 
 // Serve images dynamically, convert to base64, and return as a JSON response
-app.get('/file/:id', async (req, res) => {
+app.get('/test-doubtrun/file/:id', async (req, res) => {
   const fileId = req.params.id;
 
   try {
     // Fetch file path from Telegram
     const fileResponse = await axios.get(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
-    const filePath = fileResponse.data.result.file_path;
+    const filePath = fileResponse.data.result?.file_path;
+
+    if (!filePath) {
+      return res.status(404).json({ error: 'File path not found in Telegram response' });
+    }
 
     // Fetch the file from Telegram
     const fileUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`;
     const response = await axios.get(fileUrl, { responseType: 'arraybuffer' });
 
-    // Get the original filename (last part of the file path)
-    const originalFileName = path.basename(filePath);
+    // Convert the image data to base64
+    const base64Image = `data:image/jpeg;base64,${Buffer.from(response.data, 'binary').toString('base64')}`;
 
-    // Ensure the filename ends with ".jpg"
-    const fileName = originalFileName.endsWith('.jpg') ? originalFileName : `${originalFileName}.jpg`;
-
-    // Full path to save the file
-    const fileFullPath = path.join(imagesDir, fileName);
-
-    // Save the file locally
-    fs.writeFileSync(fileFullPath, response.data);
-
-    // Convert the image file to base64
-    const imageBuffer = fs.readFileSync(fileFullPath);
-    const base64Image = imageBuffer.toString('base64');
-    
     // Send the base64-encoded image as a response
-    res.json({ base64Image: `data:image/jpeg;base64,${base64Image}` });
+    res.json({ base64Image });
   } catch (error) {
-    console.error('Error fetching image:', error);
-    res.status(500).send('Image not found');
+    console.error('Error fetching or processing image:', error.message);
+    res.status(500).json({ error: 'Failed to fetch or process the image' });
   }
 });
+
+// app.get('/test-doubtrun/file/:id', async (req, res) => {
+//   const fileId = req.params.id;
+
+//   try {
+//     // Fetch file path from Telegram
+//     const fileResponse = await axios.get(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+//     const filePath = fileResponse.data.result.file_path;
+
+//     // Fetch the file from Telegram
+//     const fileUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`;
+//     const response = await axios.get(fileUrl, { responseType: 'arraybuffer' });
+
+//     // Get the original filename (last part of the file path)
+//     const originalFileName = path.basename(filePath);
+
+//     // Ensure the filename ends with ".jpg"
+//     const fileName = originalFileName.endsWith('.jpg') ? originalFileName : `${originalFileName}.jpg`;
+
+//     // Full path to save the file
+//     const fileFullPath = path.join(imagesDir, fileName);
+
+//     // Save the file locally
+//     fs.writeFileSync(fileFullPath, response.data);
+
+//     // Convert the image file to base64
+//     const imageBuffer = fs.readFileSync(fileFullPath);
+//     const base64Image = imageBuffer.toString('base64');
+    
+//     // Send the base64-encoded image as a response
+//     res.json({ base64Image: `data:image/jpeg;base64,${base64Image}` });
+//   } catch (error) {
+//     console.error('Error fetching image:', error);
+//     res.status(500).send('Image not found');
+//   }
+// });
 
 // Start the server
 app.listen(port, () => {
